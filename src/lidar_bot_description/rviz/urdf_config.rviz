@@ -66,6 +66,10 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         base_link:
           Alpha: 1
           Show Axes: false
@@ -77,6 +81,11 @@ Visualization Manager:
           Show Trail: false
           Value: true
         caster_wheel_front:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gpu_lidar:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -106,11 +115,15 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        base_footprint:
+          Value: true
         base_link:
           Value: true
         caster_wheel_back:
           Value: true
         caster_wheel_front:
+          Value: true
+        gpu_lidar:
           Value: true
         left_wheel:
           Value: true
@@ -122,21 +135,24 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        base_link:
-          caster_wheel_back:
-            {}
-          caster_wheel_front:
-            {}
-          left_wheel:
-            {}
-          right_wheel:
-            {}
+        base_footprint:
+          base_link:
+            caster_wheel_back:
+              {}
+            caster_wheel_front:
+              {}
+            gpu_lidar:
+              {}
+            left_wheel:
+              {}
+            right_wheel:
+              {}
       Update Interval: 0
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_link
+    Fixed Frame: base_footprint
     Frame Rate: 30
   Name: root
   Tools:
@@ -179,7 +195,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.0560877323150635
+      Distance: 1.4011662006378174
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -194,10 +210,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.47539836168289185
+      Pitch: 0.28039830923080444
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.6353958249092102
+      Yaw: 0.490396112203598
     Saved: ~
 Window Geometry:
   Displays:
