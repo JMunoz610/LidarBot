@@ -13,6 +13,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 add_executable(random_walk src/random_walk.cpp)
 ament_target_dependencies(random_walk 
@@ -21,7 +22,8 @@ ament_target_dependencies(random_walk
   geometry_msgs
   nav_msgs
   tf2
-  tf2_geometry_msgs)
+  tf2_geometry_msgs
+  sensor_msgs)
 
 install(TARGETS
   random_walk

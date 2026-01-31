@@ -7,6 +7,7 @@
 #include "std_msgs/msg/string.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2/LinearMath/Matrix3x3.h>
@@ -20,18 +21,37 @@ public:
   : Node("random_walk"), count_(0)
   {
     // publisher callback
-    auto vel_callback =
+    auto control_callback =
       [this]() -> void {
-        
-        geometry_msgs::msg::Twist msg;
-        msg.linear.x = 0.5;
-        msg.angular.z = 0.0;
+        if(laser_scan_.ranges.empty()){return;}
 
-        RCLCPP_INFO(this->get_logger(), "Publishing cmd_vel");
+        // control logic
+        float min_value = std::numeric_limits<float>::infinity();
+        
+        int min_index = (-desired_angle_range-laser_scan_.angle_min)/laser_scan_.angle_increment;
+        int max_index = (desired_angle_range-laser_scan_.angle_min)/laser_scan_.angle_increment;
+        
+        for(int i = min_index; i <= max_index; i++){
+          float scan_value = laser_scan_.ranges[i];
+          if(std::isfinite(scan_value) && scan_value < min_value){
+            min_value = scan_value;
+          }
+        }
+        RCLCPP_INFO(this->get_logger(), "Minimum distance to wall is: %f", min_value);
+        geometry_msgs::msg::Twist msg;
+        if(min_value <= min_distance_to_wall){
+          msg.linear.x = 0.0;
+          msg.angular.z = 0.5;
+        }
+        else{
+          msg.linear.x = 0.2;
+          msg.angular.z = 0.0;
+        }
+        //RCLCPP_INFO(this->get_logger(), "Publishing cmd_vel");
         this->publisher_->publish(msg);
       };
 
-    // subscriber callback
+    // subscriber callbacks
     auto pose_callback =
       [this](nav_msgs::msg::Odometry::UniquePtr msg) -> void {
         const auto &position = msg->pose.pose.position;
@@ -48,28 +68,41 @@ public:
         pose_.x = position.x;
         pose_.y = position.y;
         pose_.heading = yaw;
-        RCLCPP_INFO(this->get_logger(), "Pose: x=%.2f y=%.2f heading=%.2f", pose_.x, pose_.y, pose_.heading*180.0/M_PI);
+        //RCLCPP_INFO(this->get_logger(), "Pose: x=%.2f y=%.2f heading=%.2f", pose_.x, pose_.y, pose_.heading*180.0/M_PI);
+      };
+
+    auto scan_callback =
+      [this](sensor_msgs::msg::LaserScan::UniquePtr msg) -> void {
+        laser_scan_ = *msg;
+        //RCLCPP_INFO(this->get_logger(), "Number of scan values %zu", msg->ranges.size());
       };
 
     // publisher
-    publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
-    vel_timer_ = this->create_wall_timer(500ms, vel_callback);
+    publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
+    vel_timer_ = this->create_wall_timer(50ms, control_callback);
 
-    // subscriber
-    subscriber_ = this->create_subscription<nav_msgs::msg::Odometry>("odom", 10, pose_callback);
+    // subscribers
+    pose_subscriber_ = this->create_subscription<nav_msgs::msg::Odometry>("/odom", 50, pose_callback);
+    scan_subscriber_ = this->create_subscription<sensor_msgs::msg::LaserScan>("/scan", 10, scan_callback);
   }
 
 private:
+  rclcpp::TimerBase::SharedPtr vel_timer_;
+  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr pose_subscriber_;
+  rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_subscriber_;
+  sensor_msgs::msg::LaserScan laser_scan_;
+  size_t count_;
+  
+  // custom stuff
   struct Pose2D{
     double x = 0.0;
     double y = 0.0;
     double heading = 0.0;
   };
   Pose2D pose_;
-  rclcpp::TimerBase::SharedPtr vel_timer_;
-  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
-  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subscriber_;
-  size_t count_;
+  float min_distance_to_wall = 1.0; //meters
+  float desired_angle_range = 25*M_PI/180.0;
 };
 
 int main(int argc, char * argv[])
