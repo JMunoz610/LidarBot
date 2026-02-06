@@ -26,29 +26,26 @@ public:
         if(laser_scan_.ranges.empty()){return;}
 
         // control logic
-        float min_value = std::numeric_limits<float>::infinity();
+        float current_min_distance = std::numeric_limits<float>::infinity();
         
         int min_index = (-desired_angle_range-laser_scan_.angle_min)/laser_scan_.angle_increment;
         int max_index = (desired_angle_range-laser_scan_.angle_min)/laser_scan_.angle_increment;
         
         for(int i = min_index; i <= max_index; i++){
           float scan_value = laser_scan_.ranges[i];
-          if(std::isfinite(scan_value) && scan_value < min_value){
-            min_value = scan_value;
+          if(std::isfinite(scan_value) && scan_value < current_min_distance){
+            current_min_distance = scan_value;
           }
         }
-        RCLCPP_INFO(this->get_logger(), "Minimum distance to wall is: %f", min_value);
+        RCLCPP_INFO(this->get_logger(), "Minimum distance to wall is: %f", current_min_distance);
 
-        /*
-        Going to add logic to control both heading and distance error
-        Will have the heading be based on a specified lidar point that will be depended on which side the wall is on (left or right)
-        Use average distance for distance to wall based on a small sector of lidar points (-80 to - 100)
-        Then make github page for it and post it
-        */
-        
-  
+        float distance_error = current_min_distance - min_distance_to_wall;
+        float ang_vel = p_term*distance_error;
+
         // send message
         geometry_msgs::msg::Twist msg;
+        msg.linear.x = 0.3;
+        msg.angular.z = ang_vel;
         
         RCLCPP_INFO(this->get_logger(), "Angular Vel: %f", ang_vel);
         this->publisher_->publish(msg);
@@ -108,7 +105,7 @@ private:
   float desired_angle_range = 25*M_PI/180.0;
 
   // For PID Control
-
+  float p_term = 1.0;
 };
 
 int main(int argc, char * argv[])

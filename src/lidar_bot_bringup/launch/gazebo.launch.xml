@@ -21,7 +21,7 @@
         <arg name="gz_args" value="$(find-pkg-share lidar_bot_bringup)/worlds/walls.sdf -r"/>
     </include>
 
-    <node pkg="ros_gz_sim" exec="create" args="-topic robot_description -x 0 -y 0 -z 0"/>
+    <node pkg="ros_gz_sim" exec="create" args="-topic robot_description -x 0.25 -y .75 -z 0"/>
 
     <node pkg="rviz2" exec="rviz2" output="screen"
           args="-d $(var rviz_config_path)"/>
