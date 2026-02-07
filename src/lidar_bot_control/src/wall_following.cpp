@@ -39,8 +39,24 @@ public:
         }
         RCLCPP_INFO(this->get_logger(), "Minimum distance to wall is: %f", current_min_distance);
 
+        // P-term
         float distance_error = current_min_distance - min_distance_to_wall;
-        float ang_vel = p_term*distance_error;
+        
+        // I-term
+        total_error += distance_error*0.05;
+
+        if (total_error > i_term_limit){
+          total_error = i_term_limit;
+        }
+        if (total_error < -i_term_limit){
+          total_error = -i_term_limit;
+        }
+
+        // D-term
+        float error_difference = (distance_error - prev_error)/0.05;
+        prev_error = distance_error;
+        
+        float ang_vel = p_term*distance_error + i_term*total_error + d_term*error_difference;
 
         // send message
         geometry_msgs::msg::Twist msg;
@@ -105,7 +121,12 @@ private:
   float desired_angle_range = 25*M_PI/180.0;
 
   // For PID Control
-  float p_term = 1.0;
+  float p_term = 1.5;
+  float i_term = 0.10;
+  float d_term = 0.40;
+  float i_term_limit = 1.0;
+  float total_error = 0.0;
+  float prev_error = 0.0;
 };
 
 int main(int argc, char * argv[])
