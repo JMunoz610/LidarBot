@@ -39,18 +39,3 @@ In a separate terminal launch the wall_following.cpp file.
 ```bash
 ros2 run lidar_bot_control wall_following.cpp
 ```
-
-## Running the random_walk algorithm
-
-To launch the gazebo world with the robot:
-
-```bash
-ros2 launch lidar_bot_bringup gazebo.launch.xml
-```
-
-In a separate terminal launch the random_walk.cpp file.
-
-```bash
-ros2 launch lidar_bot_control random_walk.cpp
-```
-
