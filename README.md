@@ -37,5 +37,6 @@ ros2 launch lidar_bot_bringup gazebo.launch.xml
 In a separate terminal launch the wall_following.cpp file.
 
 ```bash
-ros2 run lidar_bot_control wall_following.cpp
+ros2 run lidar_bot_control wall_following
 ```
+
